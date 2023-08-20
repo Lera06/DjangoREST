@@ -42,7 +42,7 @@ class DroneSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CompetitionSerializer(serializers.HyperlinkedModelSerializer):
-    # Display all the details foe the related drone
+    # Display all the details for the related drone
     drone = DroneSerializer()
 
     class Meta:
