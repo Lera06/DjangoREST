@@ -2,7 +2,7 @@ from django.db import models
 
 
 class DroneCategory(models.Model):
-    name = models.CharField(max_length=250)
+    name = models.CharField(max_length=250, unique=True)
 
     class Meta:
         ordering = ('name',)
@@ -12,7 +12,9 @@ class DroneCategory(models.Model):
 
 
 class Drone(models.Model):
-    name = models.CharField(max_length=250)
+    name = models.CharField(max_length=250, unique=True)
+    # 'drones' creates a backwards relation from the DroneCategory model to the Drone model.
+    # Access to all drones that belong to a specific category.
     drone_category = models.ForeignKey(DroneCategory, related_name='drones', on_delete=models.CASCADE)
     manufacturing_date = models.DateTimeField()
     has_it_competed = models.BooleanField(default=False)
@@ -32,7 +34,7 @@ class Pilot(models.Model):
         (MALE, 'Male'),
         (FEMALE, 'Female'),
     )
-    name = models.CharField(max_length=150, blank=False, default='')
+    name = models.CharField(max_length=150, blank=False, unique=True)
     gender = models.CharField(max_length=2, choices=GENDER_CHOICES, default=MALE)
     races_count = models.IntegerField()
     inserted_timestamp = models.DateTimeField(auto_now_add=True)
@@ -46,10 +48,11 @@ class Pilot(models.Model):
 
 class Competition(models.Model):
     pilot = models.ForeignKey(Pilot, related_name='competitions', on_delete=models.CASCADE)
+    # When we delete a drone, all competitions for that drone are deleted too.
     drone = models.ForeignKey(Drone, on_delete=models.CASCADE)
     distance_in_feet = models.IntegerField()
     distance_achievement_date = models.DateTimeField()
 
     class Meta:
         # order by distance in descending order
-        ordering = ('-distance_in_feet',)
+        ordering = ('-distance_in_feet',)  # descending order
