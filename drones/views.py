@@ -12,6 +12,10 @@ from drones.serializers import PilotSerializer
 from drones.serializers import PilotCompetitionSerializer
 from django_filters import AllValuesFilter, DateTimeFilter, NumberFilter
 from django_filters import rest_framework as filters
+from rest_framework import permissions
+from drones import custompermission
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 
 
 class DroneCategoryList(generics.ListCreateAPIView):
@@ -30,6 +34,7 @@ class DroneCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DroneCategorySerializer
 
 
+# IsAuthenticatedOrReadOnly
 class DroneList(generics.ListCreateAPIView):
     name = 'drone-list'
     queryset = Drone.objects.all()
@@ -39,13 +44,28 @@ class DroneList(generics.ListCreateAPIView):
     search_fields = ('^name',)
     ordering_fields = ('name', 'manufacturing_date',)
 
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        custompermission.IsCurrentUserOwnerOrReadOnly,
+    )
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+# IsAuthenticatedOrReadOnly
 class DroneDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'drone-detail'
     queryset = Drone.objects.all()
     serializer_class = DroneSerializer
 
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        custompermission.IsCurrentUserOwnerOrReadOnly,
+    )
 
+
+# TokenAuthentication
 class PilotList(generics.ListCreateAPIView):
     name = 'pilot-list'
     queryset = Pilot.objects.all()
@@ -54,11 +74,18 @@ class PilotList(generics.ListCreateAPIView):
     search_fields = ('^name',)
     ordering_fields = ('name', 'races_count')
 
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
+
+# TokenAuthentication
 class PilotDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'pilot-detail'
     queryset = Pilot.objects.all()
     serializer_class = PilotSerializer
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
 
 class CompetitionFilter(filters.FilterSet):
